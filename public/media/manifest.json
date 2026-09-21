@@ -1,13 +1,35 @@
 {
   "name": "Cindel",
   "dedication": "Hay personas que llegan y lo iluminan todo. Tú eres la mía.",
-  "photos": [],
-  "audio": "",
+  "photos": [
+    {
+      "src": "media/WhatsApp-Image-2026-09-21-at-6-PM-42cdda2f4b4afd83.jpeg",
+      "name": "Recuerdo 1"
+    },
+    {
+      "src": "media/WhatsApp-Image-2026-09-21-at-1-38-56-PM-78741f18939c581c.jpeg",
+      "name": "Recuerdo 2"
+    },
+    {
+      "src": "media/WhatsApp-Image-PM-f2faad013b2bcb8f.jpeg",
+      "name": "Recuerdo 3"
+    },
+    {
+      "src": "media/WhatsApp-Image-2026-09-21-at-1-38-55-PM-0bbc659024984e3e.jpeg",
+      "name": "Recuerdo 4"
+    },
+    {
+      "src": "media/WhatsApp-Image-2026-09-21-at-1-38-54-PM-2a7afd28d4bf6229.jpeg",
+      "name": "Recuerdo 5"
+    }
+  ],
+  "audio": "media/WhatsApp-Audio-2026-09-21-at-1-40-22-PM-2f8c51f08c6fb640.m4a",
   "phrases": [
     "Si el universo tiene un centro, para mí eres tú.",
     "Tu sonrisa hace florecer hasta mis días más grises.",
     "Entre millones de estrellas, volvería a encontrarte.",
     "No necesito pedirle nada al cielo cuando estás conmigo.",
     "Te elegiría en esta vida y en todas las constelaciones posibles."
-  ]
+  ],
+  "volume": 0.6
 }
