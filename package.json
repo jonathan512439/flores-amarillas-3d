@@ -8,8 +8,10 @@
   "scripts": {
     "dev": "vinext dev",
     "preview": "node scripts/serve.mjs",
+    "admin": "node scripts/admin-server.mjs",
     "typecheck": "tsc --noEmit",
     "test:config": "node --experimental-strip-types --test tests/personalization.test.mjs",
+    "test:admin": "node --test tests/admin.test.mjs",
     "check:media": "node scripts/check-media.mjs",
     "build": "vinext build",
     "start": "node scripts/serve.mjs",

@@ -2,11 +2,32 @@
 
 Una experiencia de regalo para el 21 de septiembre: flores amarillas tridimensionales, polvo estelar en espiral, constelaciones, meteoros, de una a cinco fotografías y música personal.
 
+La URL pública es deliberadamente una escena inmersiva: no tiene paneles, botones, tarjetas ni instrucciones sobre la galaxia. El título, la dedicatoria, «TE AMO» y las frases se renderizan como parte de la profundidad 3D; las fotografías se navegan tocando sus constelaciones. El editor vive aparte y no se envía al artefacto público.
+
 ## Estado de esta entrega
 
-El motor Three.js y su interfaz están implementados. Se aprobaron la comprobación de tipos, las cuatro pruebas de configuración, la validación de archivos y la compilación de producción de la versión 3D. Los archivos estáticos se generan en `dist/client`. El estado de cada publicación se consulta en la pestaña **Actions** de GitHub.
+El motor Three.js y el panel independiente están implementados. Se aprobaron la comprobación de tipos, cuatro pruebas de configuración, cuatro pruebas de guardado/publicación del panel, la validación de archivos y la compilación de producción. Las pruebas del panel usan carpetas y repositorios temporales, sin modificar tus recuerdos. Los archivos estáticos se generan en `dist/client`. El estado de cada publicación se consulta en la pestaña **Actions** de GitHub.
 
-No se pudo visualizar el enlace de referencia con las herramientas disponibles. El diseño es una interpretación propia de la descripción, no una réplica visual comprobada. Las fotos, canción y nombre definitivos están pendientes de que el propietario los coloque; la escena inicial funciona sin ellos.
+No se pudo visualizar el enlace de referencia con las herramientas disponibles. El diseño es una interpretación propia de la descripción, no una réplica visual comprobada. El nombre está configurado como **Cindel**. Las fotos y la canción están pendientes de que el propietario las coloque; la escena inicial funciona sin ellas.
+
+## Panel privado y guardado permanente
+
+Elige una carpeta local del proyecto, abre PowerShell y ejecuta:
+
+```powershell
+npm ci
+npm run admin
+```
+
+Abre `http://localhost:4174`. Ese panel es la única parte con campos y controles. Carga entre 1 y 5 fotos, una canción, el nombre, la dedicatoria y hasta 12 frases. **Guardar archivos** escribe en tu carpeta local `public/media` y actualiza `public/media/manifest.json`; **Guardar y publicar** además hace `git add`, `git commit` y `git push` a `origin/main`. Necesitas Git autenticado con permiso de escritura en el repositorio. El flujo de GitHub Pages recompila y publica automáticamente; espera a que termine en **Actions** antes de compartir el enlace.
+
+El servidor del panel escucha únicamente en `127.0.0.1`, no está incluido en `dist/client` y no debe exponerse a Internet. Los archivos permanecen en el repositorio desde el momento en que el commit termina. No subas fotos o audio privados a un repositorio público.
+
+Al volver a abrir el panel se leen los archivos ya guardados. Si solo cambias frases o volumen, conserva las fotos y el audio existentes. Elegir fotos nuevas reemplaza el conjunto actual. Los archivos reciben nombres con una huella de su contenido para evitar colisiones y cachés antiguas; se conservan los archivos anteriores. Quitar una foto o canción de la escena no borra el archivo ni el historial de Git. El panel admite hasta 20 MB por foto y 50 MB por canción; usa archivos más pequeños para una carga rápida en móvil.
+
+El enlace publicado de este proyecto es **https://jonathan512439.github.io/flores-amarillas-3d/**. La destinataria solo abre ese enlace: no instala nada, no configura archivos y no tiene acceso al panel. Este panel se utiliza desde tu ordenador; GitHub Pages por sí solo no puede recibir subidas ni escribir en Git.
+
+La reproducción con sonido intenta empezar al entrar mediante `autoplay`. Los navegadores pueden bloquear audio audible sin un gesto del visitante; en ese caso, el primer toque o clic sobre la galaxia reintenta el audio. No aparece un botón ni un aviso encima de la escena.
 
 ## Ejecutar en tu ordenador
 
@@ -15,6 +36,7 @@ Requiere Node.js 22.13 o posterior y npm. Abre PowerShell en esta carpeta:
 ```powershell
 npm ci
 npm run test:config
+npm run test:admin
 npm run check:media
 npm run typecheck
 npm run build
@@ -25,21 +47,22 @@ Abre `http://localhost:4173`. Para editar con recarga automática, usa `npm run 
 
 El código propio se revisa con `npx oxlint app lib`. El starter contiene componentes no utilizados que ya reportaban incidencias: `npm run lint` revisa también esos componentes y no está aprobado globalmente.
 
-## Añadir el nombre, las fotografías y el audio
+## Añadir el nombre, las fotografías y el audio manualmente
 
 1. Copia entre 1 y 5 imágenes en `public/media`. Usa nombres simples, por ejemplo `foto-1.jpg`, `foto-2.jpg`. Para carga rápida, reduce las fotos a unos 1600 px y aproximadamente 300 KB–1 MB cada una.
-2. Copia una canción en la misma carpeta, por ejemplo `cancion.mp3`. MP3 es la opción sencilla; M4A con AAC, OGG, WAV, FLAC y otros formatos dependen del códec compatible con el navegador. El audio empieza solamente después de tocar **Música**.
+2. Copia una canción en la misma carpeta, por ejemplo `cancion.mp3`. MP3 es la opción sencilla; M4A con AAC, OGG, WAV, FLAC y otros formatos dependen del códec compatible con el navegador. Se intenta reproducir automáticamente; si el navegador lo bloquea, comienza al tocar o hacer clic en la galaxia.
 3. Edita `public/media/manifest.json`, conservando JSON válido (comillas dobles, sin comas finales). Ejemplo completo:
 
 ```json
 {
-  "name": "Valentina",
+  "name": "Cindel",
   "dedication": "Desde que llegaste, todos mis días tienen un poco más de luz.",
   "photos": [
     { "src": "media/foto-1.jpg", "name": "El día que todo comenzó" },
     { "src": "media/foto-2.jpg", "name": "Mi lugar favorito eres tú" }
   ],
   "audio": "media/cancion.mp3",
+  "volume": 0.6,
   "phrases": [
     "Te elegiría en todas las constelaciones posibles.",
     "Estas flores son mi manera de decirte que te quiero.",
@@ -51,16 +74,15 @@ El código propio se revisa con `npx oxlint app lib`. El starter contiene compon
 4. Para una sola foto deja un objeto en `photos`; para cinco, añade tres más. No se esconden fotos en móvil. También puedes usar `photos: []` y `audio: ""` mientras preparas el regalo.
 5. Ejecuta `npm run check:media` y reconstruye con `npm run build` después de cualquier cambio.
 
-**Alternativa visual:** abre el botón de ajustes en la web, edita el nombre y las frases, selecciona las fotos y el audio, y pulsa **Descargar configuración**. Copia el `manifest.json` descargado y los originales elegidos a `public/media`. El selector solo genera una vista previa en esa pestaña: no sube los archivos, no modifica el sitio publicado y no los conserva al recargar. Para que ella vea los cambios, vuelve a publicar.
+El panel local es el flujo recomendado porque guarda y publica los archivos. También puedes copiar los archivos y editar `manifest.json` a mano si lo prefieres.
 
 ## Navegar
 
-- Escritorio: arrastrar para orbitar; rueda para acercar/alejar; botón derecho y arrastre para desplazar el encuadre.
+- Escritorio: arrastra para orbitar; rueda para acercar/alejar; botón derecho y arrastre para desplazar el encuadre.
 - Móvil: un dedo para orbitar; dos dedos para acercar/alejar y desplazar.
-- Toca una fotografía en la galaxia o su miniatura para verla completa y desplazarte a esa constelación. Las flechas recorren todos los recuerdos.
-- El botón de casa recupera la vista completa. `+`, `-` y `Home` funcionan al enfocar el lienzo con el teclado.
-- Pausa el movimiento ambiental con su botón. Se respeta la preferencia del sistema de reducir movimiento. La música se pausa por separado.
-- Si WebGL no está disponible, siguen accesibles las fotos, frases, ajustes y música.
+- Toca una fotografía en la galaxia para enfocar su constelación. Escape o un toque en el espacio vacío devuelve la vista completa.
+- Teclado: flechas recorren fotografías, `+` y `-` acercan/alejan, `Home` vuelve al conjunto, `Espacio` pausa el movimiento y `M` silencia.
+- Si WebGL no está disponible, aparece una versión de partículas 2D sin paneles que mantiene el nombre, «TE AMO», fotos y movimiento.
 
 ## Publicar gratis en GitHub Pages
 

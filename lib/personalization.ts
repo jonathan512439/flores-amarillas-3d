@@ -1,5 +1,5 @@
 export type Photo = { src: string; name: string };
-export type Personalization = { name: string; dedication: string; photos: Photo[]; audio: string; phrases: string[] };
+export type Personalization = { name: string; dedication: string; photos: Photo[]; audio: string; phrases: string[]; volume: number };
 
 export const DEFAULT_PHRASES = [
   'Si el universo tiene un centro, para mí eres tú.',
@@ -13,6 +13,7 @@ export const DEFAULT_CONFIG: Personalization = {
   dedication: 'Hay personas que llegan y lo iluminan todo. Tú eres la mía.',
   photos: [],
   audio: '',
+  volume: 0.6,
   phrases: DEFAULT_PHRASES,
 };
 
@@ -25,7 +26,7 @@ export function normalizeConfig(value: unknown): Personalization {
     return [{ src: v.src.trim(), name: text(v.name, 'Recuerdo ' + (i + 1), 80) }];
   }) : [];
   const phrases = Array.isArray(input.phrases) ? input.phrases.filter((v): v is string => typeof v === 'string' && !!v.trim()).slice(0, 20).map(v => v.trim().slice(0, 300)) : [];
-  return { name: text(input.name, DEFAULT_CONFIG.name, 60), dedication: text(input.dedication, DEFAULT_CONFIG.dedication, 400), photos, audio: typeof input.audio === 'string' ? input.audio.trim() : '', phrases: phrases.length ? phrases : DEFAULT_PHRASES };
+  return { name: text(input.name, DEFAULT_CONFIG.name, 60), dedication: text(input.dedication, DEFAULT_CONFIG.dedication, 400), photos, audio: typeof input.audio === 'string' ? input.audio.trim() : '', phrases: phrases.length ? phrases : DEFAULT_PHRASES, volume: typeof input.volume === 'number' && Number.isFinite(input.volume) ? Math.max(0, Math.min(1, input.volume)) : 0.6 };
 }
 
 // Resolve relative to the site, including /repository/ on GitHub Pages.

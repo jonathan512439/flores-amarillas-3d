@@ -27,6 +27,7 @@ jobs:
         id: pages
       - run: npm ci
       - run: npm run test:config
+      - run: npm run test:admin
       - run: npm run check:media
       - run: npm run typecheck
       - run: npm run build

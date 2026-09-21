@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import type { Photo } from './personalization';
+import type { Personalization, Photo } from './personalization';
 
 export type GalaxyApi = {
   focus: (index: number) => void;
@@ -11,6 +11,7 @@ export type GalaxyApi = {
   zoom: (direction: number) => void;
   setMotion: (enabled: boolean) => void;
   setPhotos: (photos: Photo[]) => void;
+  setMessages: (config: Personalization) => void;
   dispose: () => void;
 };
 
@@ -37,7 +38,7 @@ export function createGalaxy(
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x060911, 0.0055);
   const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 300);
-  const overview = new THREE.Vector3(0, small ? 42 : 31, small ? 65 : 47);
+  const overview = new THREE.Vector3(0, small ? 37 : 29, small ? 69 : 51);
   camera.position.copy(overview);
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
@@ -166,6 +167,41 @@ export function createGalaxy(
     composer.addPass(bloom);
   }
   const photosGroup = new THREE.Group(); scene.add(photosGroup);
+  const wordsGroup = new THREE.Group(); scene.add(wordsGroup);
+  const wordResources: Array<THREE.Material | THREE.Texture | THREE.BufferGeometry> = [];
+  const words: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>[] = [];
+  function setMessages(config: Personalization) {
+    wordsGroup.clear(); words.length = 0; wordResources.splice(0).forEach(resource => resource.dispose());
+    function label(text: string, position: THREE.Vector3, width: number, title = false) {
+      const bitmap = document.createElement('canvas'); bitmap.width = 1536; bitmap.height = 384;
+      const context = bitmap.getContext('2d')!;
+      context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillStyle = title ? '#ffdf8c' : '#f5dea4';
+      const size = title ? 110 : 57;
+      context.font = (title ? '' : 'italic ') + size + 'px Georgia, serif';
+      const lines: string[] = []; let line = '';
+      for (const word of text.split(/\s+/)) {
+        const next = line ? line + ' ' + word : word;
+        if (context.measureText(next).width > 1400 && line) { lines.push(line); line = word; } else line = next;
+      }
+      if (line) lines.push(line);
+      const lineHeight = Math.min(size * 1.25, 340 / Math.max(1, lines.length));
+      if (lineHeight < size) context.font = (title ? '' : 'italic ') + Math.floor(lineHeight * 0.82) + 'px Georgia, serif';
+      lines.forEach((value, index) => context.fillText(value, 768, 192 + (index - (lines.length - 1) / 2) * lineHeight, 1400));
+      const texture = new THREE.CanvasTexture(bitmap); texture.colorSpace = THREE.SRGBColorSpace;
+      const shape = new THREE.PlaneGeometry(width, width / 4);
+      const ink = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthTest: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(shape, ink); mesh.position.copy(position); mesh.userData.title = title;
+      wordResources.push(texture, shape, ink); words.push(mesh); wordsGroup.add(mesh);
+    }
+    // Letters are located in open parts of the 3D world, never in a HUD.
+    label('Para ' + config.name, new THREE.Vector3(0, 18, -17), 23, true);
+    label('TE AMO', new THREE.Vector3(0, 12.5, -17), 15, true);
+    const phrases = [config.dedication, ...config.phrases].filter(Boolean).slice(0, 13);
+    phrases.forEach((text, index) => {
+      const angle = index / phrases.length * Math.PI * 2 + 0.28;
+      label(text, new THREE.Vector3(Math.cos(angle) * 40, 7 + (index % 2) * 4, Math.sin(angle) * 40), 16);
+    });
+  }
   let photoGeneration = 0;
   let photoResources: Array<THREE.Material | THREE.Texture | THREE.BufferGeometry> = [];
   let photoMeshes: THREE.Mesh[] = [];
@@ -185,16 +221,13 @@ export function createGalaxy(
           preview.width = Math.max(1, Math.round(image.naturalWidth * ratio)); preview.height = Math.max(1, Math.round(image.naturalHeight * ratio));
           preview.getContext('2d')!.drawImage(image, 0, 0, preview.width, preview.height);
           const texture = new THREE.CanvasTexture(preview); texture.colorSpace = THREE.SRGBColorSpace;
-          const aspect = Math.max(0.45, Math.min(2, image.naturalWidth / image.naturalHeight));
-          const width = 3.3 * Math.sqrt(aspect), height = 3.3 / Math.sqrt(aspect);
+          const aspect = image.naturalWidth / image.naturalHeight;
+          const width = 5 * Math.sqrt(aspect), height = 5 / Math.sqrt(aspect);
           const g = new THREE.PlaneGeometry(width, height);
           const m = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false });
           const mesh = new THREE.Mesh(g, m); mesh.userData.index = index;
           mesh.position.fromArray(PHOTO_POSITIONS[index]);
-          const frameGeometry = new THREE.PlaneGeometry(width + 0.14, height + 0.14);
-          const frameMaterial = new THREE.MeshBasicMaterial({ color: 0xe6b767, side: THREE.DoubleSide });
-          const frame = new THREE.Mesh(frameGeometry, frameMaterial); frame.position.z = -0.018; mesh.add(frame);
-          photoResources.push(texture, g, m, frameGeometry, frameMaterial); photoMeshes.push(mesh); photosGroup.add(mesh);
+          photoResources.push(texture, g, m); photoMeshes.push(mesh); photosGroup.add(mesh);
         } catch { onMediaError('No se pudo abrir la fotografía: ' + photo.name); }
       };
       image.onerror = () => { if (!destroyed && generation === photoGeneration) onMediaError('No se pudo cargar la fotografía: ' + photo.name); };
@@ -204,19 +237,31 @@ export function createGalaxy(
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   let pointerStart = { x: 0, y: 0, time: 0 };
+  const activePointers = new Set<number>();
+  let multiTouch = false;
+  let focused = false;
   let flight: { position: THREE.Vector3; target: THREE.Vector3 } | null = null;
   const stopFlight = () => { flight = null; };
   controls.addEventListener('start', stopFlight);
-  function pointerDown(event: PointerEvent) { pointerStart = { x: event.clientX, y: event.clientY, time: performance.now() }; }
+  function pointerDown(event: PointerEvent) {
+    activePointers.add(event.pointerId);
+    if (activePointers.size === 1) multiTouch = false; else multiTouch = true;
+    pointerStart = { x: event.clientX, y: event.clientY, time: performance.now() };
+  }
   function pointerUp(event: PointerEvent) {
+    activePointers.delete(event.pointerId);
+    if (multiTouch || activePointers.size || event.button > 0) return;
     if (Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 6 || performance.now() - pointerStart.time > 650) return;
     const bounds = canvas.getBoundingClientRect();
     pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
     raycaster.setFromCamera(pointer, camera);
     const hit = raycaster.intersectObjects(photoMeshes, false)[0];
     if (hit) onPhoto(hit.object.userData.index as number);
+    else if (focused) { focused = false; go(overview.clone(), new THREE.Vector3()); }
   }
+  function pointerCancel(event: PointerEvent) { activePointers.delete(event.pointerId); multiTouch = true; }
   canvas.addEventListener('pointerdown', pointerDown); canvas.addEventListener('pointerup', pointerUp);
+  canvas.addEventListener('pointercancel', pointerCancel);
   function contextLost(event: Event) { event.preventDefault(); cancelAnimationFrame(animationFrame); onContextLost(); }
   canvas.addEventListener('webglcontextlost', contextLost);
   function resize() {
@@ -248,6 +293,11 @@ export function createGalaxy(
     meteor.visible = motion && meteorProgress < 1;
     if (meteor.visible) { meteor.position.set(-35 + meteorProgress * 70, 26 - meteorProgress * 18, -25); meteorMaterial.opacity = Math.sin(meteorProgress * Math.PI) * 0.65; }
     photoMeshes.forEach(mesh => { mesh.quaternion.copy(camera.quaternion); });
+    words.forEach(mesh => {
+      mesh.quaternion.copy(camera.quaternion);
+      // Keep the photographs unobstructed when approaching a memory.
+      mesh.material.opacity = focused ? 0 : 1;
+    });
     if (composer) composer.render(); else renderer.render(scene, camera);
     if (dt > 0.036 && motion) slowFrames++; else slowFrames = Math.max(0, slowFrames - 1);
     if (slowFrames > 90) {
@@ -260,11 +310,17 @@ export function createGalaxy(
   reducedQuery.addEventListener('change', preferenceChange);
   return {
     setPhotos,
+    setMessages,
     focus(index) {
+      focused = true;
       const target = new THREE.Vector3().fromArray(PHOTO_POSITIONS[Math.max(0, Math.min(4, index))]);
-      go(target.clone().add(new THREE.Vector3(0, 1.5, small ? 11 : 8.5)), target);
+      const mesh = photoMeshes.find(value => value.userData.index === index);
+      const parameters = (mesh?.geometry as THREE.PlaneGeometry | undefined)?.parameters;
+      const requiredHeight = Math.max(parameters?.height || 5, (parameters?.width || 5) / camera.aspect);
+      const distance = Math.max(7, requiredHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.2);
+      go(target.clone().add(new THREE.Vector3(0, 0, distance)), target);
     },
-    reset() { go(overview.clone(), new THREE.Vector3()); },
+    reset() { focused = false; go(overview.clone(), new THREE.Vector3()); },
     zoom(direction) {
       const distance = camera.position.distanceTo(controls.target);
       const desired = THREE.MathUtils.clamp(distance * (direction > 0 ? 0.8 : 1.25), controls.minDistance, controls.maxDistance);
@@ -272,10 +328,13 @@ export function createGalaxy(
     },
     setMotion(enabled) { motion = enabled; controls.autoRotate = enabled; },
     dispose() {
+      if (destroyed) return;
       destroyed = true; photoGeneration++; cancelAnimationFrame(animationFrame); observer.disconnect();
       reducedQuery.removeEventListener('change', preferenceChange);
       canvas.removeEventListener('pointerdown', pointerDown); canvas.removeEventListener('pointerup', pointerUp); canvas.removeEventListener('webglcontextlost', contextLost);
+      canvas.removeEventListener('pointercancel', pointerCancel);
       controls.removeEventListener('start', stopFlight); controls.dispose(); clearPhotos();
+      wordResources.splice(0).forEach(resource => resource.dispose()); wordsGroup.clear();
       geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); textures.forEach(t => t.dispose());
       petals.dispose(); centers.dispose(); stems.dispose(); leaves.dispose(); bloom?.dispose(); composer?.dispose(); renderer.dispose();
     },
