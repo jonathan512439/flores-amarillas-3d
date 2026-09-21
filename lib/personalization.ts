@@ -9,7 +9,7 @@ export const DEFAULT_PHRASES = [
   'Te elegiría en esta vida y en todas las constelaciones posibles.',
 ];
 export const DEFAULT_CONFIG: Personalization = {
-  name: 'ti',
+  name: 'Cindel',
   dedication: 'Hay personas que llegan y lo iluminan todo. Tú eres la mía.',
   photos: [],
   audio: '',

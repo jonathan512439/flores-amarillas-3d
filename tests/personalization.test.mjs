@@ -9,7 +9,7 @@ test('limita fotos a cinco y descarta entradas mal formadas', () => {
 test('recupera las frases predeterminadas ante una configuración vacía', () => {
   const result = normalizeConfig({ phrases: ['', 2, null] });
   assert.ok(result.phrases.length > 0);
-  assert.equal(result.name, 'ti');
+  assert.equal(result.name, 'Cindel');
   assert.throws(() => normalizeConfig(null));
 });
 test('conserva la subruta de GitHub Pages y codifica nombres con espacios', () => {

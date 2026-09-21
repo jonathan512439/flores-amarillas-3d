@@ -143,7 +143,7 @@ export default function Home() {
       <div className="sky-brand"><Flower2 size={24} /><div>UN UNIVERSO PARA TI<span>21 DE SEPTIEMBRE</span></div></div>
       <div className="sky-tools"><button onClick={toggleAudio} className={playing ? 'active' : ''} aria-label={playing ? 'Pausar música' : 'Reproducir música'}>{playing ? <Pause size={18} /> : <Music2 size={18} />}<span>Música</span></button><button onClick={() => setSettings(true)} aria-label="Personalizar constelación"><Settings2 size={19} /></button></div>
     </header>
-    <section className="sky-heading"><p className="sky-eyebrow">FLORES QUE NUNCA DEJAN DE BRILLAR</p><h1>Un cielo entero,<br /><em>para {config.name}.</em></h1><p className="sky-dedication">{config.dedication}</p></section>
+    <section className="sky-heading"><p className="sky-eyebrow">FLORES QUE NUNCA DEJAN DE BRILLAR</p><h1>Un cielo entero,<br /><em>para {config.name}</em></h1><p className="love-declaration"><Heart size={18} fill="currentColor" aria-hidden="true" /><span>TE AMO</span><Heart size={18} fill="currentColor" aria-hidden="true" /></p><p className="sky-dedication">{config.dedication}</p></section>
     {!ready && !fallback && <output className="sky-loading">Encendiendo las estrellas…</output>}
     {fallback && <p className="sky-loading">Tus recuerdos, también sin 3D.</p>}
     <nav className="camera-tools" aria-label="Controles de la galaxia">
