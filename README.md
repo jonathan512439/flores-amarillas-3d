@@ -85,7 +85,7 @@ Si ya existe un repositorio Git, omite `git init`. Si ya existe `origin`, consul
 5. Espera a que `build` y `deploy` estén en verde. Abre el enlace que aparece en el entorno `github-pages` o en **Settings → Pages**. Habitualmente será `https://TU_USUARIO.github.io/flores-amarillas/`.
 6. Abre ese enlace en móvil y ordenador. Prueba el primer y último recuerdo, la música, zoom y vista inicial. Esta prueba en dispositivos reales está pendiente en esta entrega.
 
-La acción configura automáticamente la subruta del repositorio mediante `PAGES_BASE_PATH`. Para actualizar el regalo, cambia los archivos locales y ejecuta:
+La acción configura automáticamente el prefijo de recursos del repositorio mediante `PAGES_BASE_PATH`. `scripts/prepare-pages.mjs` adapta la ubicación física de `_next` para GitHub Pages y verifica que el HTML y sus recursos existan antes de publicarlos. Para actualizar el regalo, cambia los archivos locales y ejecuta:
 
 ```powershell
 git add .

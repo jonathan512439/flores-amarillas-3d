@@ -2,7 +2,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'export',
-  basePath: process.env.PAGES_BASE_PATH || '',
+  // Single-page export: assetPrefix keeps prerendering at / while Pages
+  // serves the exported files under the repository URL.
+  assetPrefix: process.env.PAGES_BASE_PATH || '',
   images: { unoptimized: true },
 };
 
